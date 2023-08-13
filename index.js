@@ -9,41 +9,50 @@ function formatSeconds(seconds) {
 
   return `${formatTwoNumbers(hours)}:${formatTwoNumbers(minutes)}:${formatTwoNumbers(secondsTimer)}`;
 }
+
 function formatTwoNumbers(val) {
   return String(val).padStart(2, '0');
 }
 
-// Напишите реализацию createTimerAnimator
-// который будет анимировать timerEl
 const createTimerAnimator = () => {
   let intervalId;
+
   return (seconds) => {
-    clearInterval(intervalId);
-    intervalId = setInterval(() => {
-      seconds--;
-      timerEl.textContent = formatSeconds(seconds);
-      if (seconds <= 0) {
-        clearInterval(intervalId);
-        return
+    cancelAnimationFrame(intervalId);
+
+    const startTime = Date.now();
+
+    const animate = () => {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
+      const remainingSeconds = Math.max(0, seconds - Math.floor(elapsedTime / 1000));
+
+      timerEl.textContent = formatSeconds(remainingSeconds);
+
+      if (remainingSeconds <= 0) {
+        cancelAnimationFrame(intervalId);
+        return;
       }
-    }, 1000)
+
+      intervalId = requestAnimationFrame(animate);
+    };
+
+    animate();
   };
 };
 
 const animateTimer = createTimerAnimator();
 
 inputEl.addEventListener('input', () => {
-  // Очистите input так, чтобы в значении
-  // оставались только числа
   const onlyNumbers = inputEl.value.replace(/\D/g, '');
   inputEl.value = onlyNumbers;
 });
 
 buttonEl.addEventListener('click', () => {
   const seconds = Number(inputEl.value);
-  
+
   timerEl.textContent = formatSeconds(seconds);
-  
+
   animateTimer(seconds);
 
   inputEl.value = '';
